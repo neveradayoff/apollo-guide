@@ -193,6 +193,7 @@
             letter-spacing: 0.5px;
             transition: all 0.3s ease;
             flex: 1;
+            cursor: pointer;
         }
 
         .n-btn.active { color: #fff; }
@@ -405,10 +406,15 @@
 
         function setTab(t) {
             tab = t;
-            document.getElementById('ns').className = 'n-btn' + (t == 's' ? ' active' : '');
-            document.getElementById('nu').className = 'n-btn' + (t == 'u' ? ' active' : '');
-            document.getElementById('nq').className = 'n-btn' + (t == 'q' ? ' active' : '');
-            document.getElementById('ne').className = 'n-btn' + (t == 'e' ? ' active' : '');
+            // Clear all active states
+            document.getElementById('ns').classList.remove('active');
+            document.getElementById('nu').classList.remove('active');
+            document.getElementById('nq').classList.remove('active');
+            document.getElementById('ne').classList.remove('active');
+            
+            // Set active state for selected tab
+            document.getElementById('n' + t).classList.add('active');
+            
             render();
         }
 
@@ -427,6 +433,12 @@
             var v = document.getElementById('view');
             var h = '';
             var items = content[mode][tab];
+            
+            if (!items) {
+                v.innerHTML = '<div style="padding:20px; text-align:center; color:#666">No data found for this category.</div>';
+                return;
+            }
+
             if(tab == 'q' || tab == 'e') {
                 for(var i=0; i<items.length; i++) {
                     var accent = mode == 'h' ? 'var(--h-accent)' : 'var(--t-accent)';
@@ -458,7 +470,9 @@
             setTimeout(() => { toast.style.opacity = '0'; }, 2000);
         }
 
-        window.onload = () => setMode('h');
+        window.onload = function() {
+            setMode('h');
+        };
     </script>
 </body>
 </html>
