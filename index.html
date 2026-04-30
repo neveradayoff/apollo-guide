@@ -168,15 +168,16 @@
         }
 
         nav {
-            padding-bottom: env(safe-area-inset-bottom);
             background: rgba(10, 10, 10, 0.98);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             display: flex;
             justify-content: space-around;
             padding-top: 15px;
-            padding-bottom: 30px;
+            /* Extra padding for Safari navigation bars on iPhone */
+            padding-bottom: calc(30px + env(safe-area-inset-bottom));
             border-top: 1px solid var(--glass-border);
+            z-index: 20;
         }
 
         .n-btn {
