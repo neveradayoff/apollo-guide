@@ -24,6 +24,7 @@
             flex-direction: column;
             overflow: hidden;
             transition: background-color 0.5s ease;
+            -webkit-tap-highlight-color: transparent; /* Fixes blue tap highlight on iOS */
         }
 
         header {
@@ -88,6 +89,7 @@
             background: transparent;
             font-size: 12px;
             letter-spacing: 1px;
+            cursor: pointer; /* Required for iOS click detection */
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -107,7 +109,6 @@
             margin-bottom: 14px;
             border: 1px solid var(--glass-border);
             overflow: hidden;
-            transition: transform 0.2s ease;
         }
 
         .card-header {
@@ -122,6 +123,7 @@
             text-align: left;
             font-size: 16px;
             font-weight: 700;
+            cursor: pointer;
         }
 
         .chevron {
@@ -138,15 +140,13 @@
         .card-body {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1), padding 0.3s ease;
+            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
             padding: 0 20px;
-            background: rgba(0,0,0,0.15);
         }
 
         .card.open .card-body {
             max-height: 1000px;
             padding: 0 20px 25px;
-            transition: max-height 0.4s ease-in;
         }
 
         .card-text {
@@ -165,7 +165,6 @@
             font-style: italic;
             font-size: 16px;
             line-height: 1.5;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         nav {
@@ -176,7 +175,7 @@
             display: flex;
             justify-content: space-around;
             padding-top: 15px;
-            padding-bottom: 35px;
+            padding-bottom: 30px;
             border-top: 1px solid var(--glass-border);
         }
 
@@ -190,30 +189,29 @@
             flex-direction: column;
             align-items: center;
             gap: 8px;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
             flex: 1;
-            cursor: pointer;
+            cursor: pointer; /* Required for iOS click detection */
+            outline: none;
         }
 
         .n-btn.active { color: #fff; }
 
         .icon-circle { 
-            width: 28px; height: 28px; 
-            border-radius: 8px;
+            width: 32px; height: 32px; 
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: rgba(255,255,255,0.05);
-            transition: all 0.3s ease;
+            transition: transform 0.2s ease;
         }
         
         .n-btn.active .icon-circle { 
             background: rgba(255,255,255,0.15);
-            transform: translateY(-2px);
+            transform: scale(1.1);
         }
 
-        svg.nav-icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        svg.nav-icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
         #toast {
             position: fixed;
@@ -236,7 +234,7 @@
 <body id="body">
 
     <header>
-        <button class="share-trigger" onclick="copyAppLink()" title="Copy Link">
+        <button class="share-trigger" onclick="copyAppLink()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
         </button>
         <div class="header-graphic" id="main-graphic"></div>
@@ -271,54 +269,48 @@
     </nav>
 
     <script>
-        var mode = 'h';
-        var tab = 's';
+        var currentMode = 'h';
+        var currentTab = 's';
         
-        var graphics = {
-            h: `<svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-            t: `<svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#4d94ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`
-        };
-
-        var content = {
+        const contentData = {
             h: {
                 s: [
-                    {t:"The Van Allen Barrier", d:"Space is radioactive. Crossing the belts in 1969 with aluminum foil shielding should have been fatal to the crew."},
-                    {t:"Shadow Inconsistencies", d:"Photos show shadows pointing in different directions. In space, with one sun, they must be parallel. This is studio lighting 101."},
-                    {t:"Vacuum Flag Ripples", d:"The flag moves like it's in a breeze. In a vacuum, it shouldn't flutter after being let go. The 'momentum' excuse is weak."},
-                    {t:"The Starless Void", d:"No stars are visible in any of the moon photos. NASA says the sun was too bright, but stars are 10x brighter without an atmosphere."},
-                    {t:"No Landing Crater", d:"A 10,000lb thrust engine landed on soft dust and didn't leave a single mark or blow dust onto the landing pads."},
-                    {t:"The 'C' Rock", d:"A rock in official photo AS16-107-17446 has a perfect 'C' printed on it. It’s a prop letter for set dressing."},
-                    {t:"Perfect Focus", d:"Chest-mounted cameras with no viewfinders somehow produced thousands of perfectly framed, perfectly focused professional shots."},
-                    {t:"Crosshair Anomaly", d:"In many photos, the camera's etched crosshairs appear *behind* the objects being photographed. This suggests image layering/compositing."},
-                    {t:"Footprint Physics", d:"A boot leaves a perfect, crisp imprint in bone-dry dust. On Earth, that requires moisture. In a vacuum, it shouldn't hold that shape."},
-                    {t:"Missing Telemetry Tapes", d:"NASA admitted they 'lost' or recorded over 700 boxes of high-res telemetry tapes. Conveniently destroying the best evidence."},
-                    {t:"Heat & Film Survival", d:"Daytime temperatures on the moon reach 250°F. The Hasselblad camera film should have melted or fogged instantly without specialized cooling systems."}
+                    {t:"The Van Allen Barrier", d:"Crossing the radiation belts in 1969 with thin aluminum shielding should have been fatal. Modern probes require lead shielding."},
+                    {t:"Shadow Inconsistencies", d:"Photos show shadows pointing in different directions. In space, with one sun, they must be parallel. This suggests studio spotlights."},
+                    {t:"Vacuum Flag Ripples", d:"The flag flutters in the breeze. NASA says it's 'momentum' from being planted, but it moves after the astronauts let go."},
+                    {t:"The Starless Void", d:"No stars are visible in any lunar photos. The moon has no atmosphere to block them; the sky should be filled with light."},
+                    {t:"No Landing Crater", d:"A 10,000lb thrust engine landed on soft dust and didn't leave a mark or blow dust onto the landing pads."},
+                    {t:"The 'C' Rock", d:"A rock in photo AS16-107-17446 has a perfect 'C' printed on it. It’s a prop letter for set dressing."},
+                    {t:"Perfect Focus", d:"Chest-mounted cameras with no viewfinders somehow produced thousands of perfectly framed, professional shots."},
+                    {t:"Crosshair Anomaly", d:"The camera's etched crosshairs appear *behind* the objects in many photos, suggesting image layering."},
+                    {t:"Footprint Physics", d:"A crisp imprint in dry dust requires moisture. In a vacuum, dust shouldn't hold that shape."},
+                    {t:"Missing Telemetry Tapes", d:"NASA admits they 'lost' or recorded over 700 boxes of high-res telemetry tapes. The best evidence is gone."},
+                    {t:"Heat & Film Survival", d:"Lunar day temps reach 250°F. The Hasselblad camera film should have melted instantly."}
                 ],
                 u: [
-                    {t:"Kubrick's Confession", d:"Stanley Kubrick allegedly directed the footage. He hid clues in 'The Shining'—Danny’s sweater, the room number 237 (distance to moon)."},
+                    {t:"Kubrick's Confession", d:"Stanley Kubrick allegedly directed the footage. He hid clues in 'The Shining'—the Apollo sweater and room 237."},
                     {t:"1.6x Speed", d:"Play lunar footage at 1.6x speed and the astronauts move exactly like they are on a 1G Earth set with hidden wires."},
-                    {t:"Area 51 Moonscape", d:"Whistleblowers say a 1:1 replica of the moon was built in the Nevada desert for the 'missions' to be filmed safely."},
-                    {t:"NASA's 'Lost' Blueprints", d:"NASA admitted they destroyed the tech and blueprints to build the Saturn V. Who destroys the plans for their greatest achievement?"},
-                    {t:"The 10-Second Delay", d:"The 'live' broadcast had a delay to allow editors to cut the feed if a UFO appeared or a studio light fell down."},
-                    {t:"Wagging the Dog", d:"The mission happened during the height of the Vietnam War. Nixon needed a massive patriotic distraction."},
-                    {t:"The Moon is a Projection", d:"Some theorists believe the moon is a plasma projection on the firmament. You can't land a metal box on a projection."},
-                    {t:"Soul-Trap Theory", d:"Lore suggests the moon is an artificial satellite used as a 'recycling center' for human souls by an alien elite."},
-                    {t:"Van Eck Phreaking", d:"Amateur radio operators claimed to hear voices giving stage directions on secondary, non-public frequencies."},
-                    {t:"The Paper-Thin Module", d:"Photos of the Lunar Module look like they are held together by Scotch tape and gold foil. It doesn't look space-worthy."},
-                    {t:"Antarctic Rocks", d:"Skeptics believe Wernher von Braun led an expedition to Antarctica in 1967 to collect meteorites to pass off as 'moon rocks'."}
+                    {t:"Area 51 Moonscape", d:"Whistleblowers say a 1:1 replica of the moon was built in the Nevada desert for the 'missions' to be filmed."},
+                    {t:"Destroyed Blueprints", d:"NASA admitted they destroyed the tech and blueprints to build the Saturn V. No one deletes history's greatest plans."},
+                    {t:"Nixon's Secret Tape", d:"The 'live' broadcast had a delay to allow editors to cut the feed if a studio light fell or a wire snapped."},
+                    {t:"Vietnam Distraction", d:"The mission happened during the height of the Vietnam War. Nixon needed a massive patriotic distraction."},
+                    {t:"Moon Projection", d:"Theorists believe the moon is a plasma projection. You can't land a metal box on a light projection."},
+                    {t:"Soul-Trap Theory", d:"Lore suggests the moon is an artificial satellite used by elite controllers to monitor Earth."},
+                    {t:"Antarctic Rocks", d:"Wernher von Braun led an expedition to Antarctica in 1967 to collect meteorites to pass off as 'moon rocks'."},
+                    {t:"Paper-Thin Module", d:"Photos of the Lunar Module show it held together by gold foil and tape. It doesn't look space-worthy."},
+                    {t:"False Earth Photos", d:"Apollo 8 photos of Earth were allegedly taken through a circular window while low-Earth orbiting."}
                 ],
                 q: [
-                    "Why did we stop going for 50 years with better computers?",
+                    "Why haven't we been back in 50 years with better tech?",
                     "Where are the 700 boxes of telemetry tapes NASA 'lost'?",
-                    "How did the film survive 250-degree lunar heat?",
+                    "How did film survive 250-degree lunar heat?",
                     "Why does the Earth look like a circular cutout in the window?",
                     "How can crosshairs be behind the objects in the photo?",
                     "Why is there a footprint but no engine exhaust marks?",
                     "Why did the astronauts look so terrified during their first press conference?",
                     "How could they communicate in real-time with zero signal delay?",
                     "Why was the 'C' rock never examined for prop markings?",
-                    "Why did Bill Kaysing receive death threats for asking these questions?",
-                    "Why hasn't a private telescope taken a clear photo of the gear?"
+                    "Why haven't private telescopes taken a clear photo of the gear?"
                 ],
                 e: [
                     "I'm just asking questions. Why does that bother you?",
@@ -330,36 +322,35 @@
                     "Cameras don't lie, but the people developing the film do.",
                     "Think for yourself for once.",
                     "Physics doesn't care about your patriotism.",
-                    "We'll talk when you've seen the 1.6x speed footage.",
-                    "The moon is a cold light in the sky, not a rock you can land on."
+                    "We'll talk when you've seen the 1.6x speed footage."
                 ]
             },
             t: {
                 s: [
                     {t:"The Soviet Witness", d:"The USSR tracked the signal to the moon. If we faked it, they would have exposed us instantly to win the race."},
-                    {t:"Laser Retroreflectors", d:"Astronauts left mirrors on the moon. Any observatory can fire a laser at them and get a timed reflection back."},
-                    {t:"Waterless Moon Rocks", d:"The 842lbs of rocks are anhydrous. No rock on Earth is completely water-free. They are truly alien."},
-                    {t:"The Scale of Silence", d:"Over 400,000 people worked on Apollo. A secret that big cannot stay hidden for 50 years."},
-                    {t:"LRO Satellite Photos", d:"The Lunar Reconnaissance Orbiter photographed the landing sites in 2009. You can see the rover tracks."},
-                    {t:"The Physics of Dust", d:"In a vacuum, dust falls in perfect arcs. On Earth, air makes it swirl. Apollo shows perfect vacuum physics."},
-                    {t:"Parallax Proof", d:"Stereoscopic analysis of the background mountains proves they are miles away, not a backdrop on a set."},
+                    {t:"Laser Retroreflectors", d:"Astronauts left mirrors on the moon. Any observatory can fire a laser at them and get a reflection back today."},
+                    {t:"Waterless Moon Rocks", d:"The 842lbs of rocks are anhydrous. No rock on Earth is completely water-free. They are truly alien samples."},
+                    {t:"Scale of Silence", d:"Over 400,000 people worked on Apollo. A secret that big cannot stay hidden for 50 years."},
+                    {t:"LRO Satellite Photos", d:"The Lunar Reconnaissance Orbiter photographed the landing sites in 2009. You can see the rover tracks and equipment."},
+                    {t:"Physics of Dust", d:"In a vacuum, dust falls in perfect arcs. On Earth, air makes it swirl. Apollo footage shows perfect vacuum physics."},
+                    {t:"Parallax Proof", d:"Stereoscopic analysis of the background mountains proves they are miles away, not a backdrop on a small set."},
                     {t:"The 1.3s Delay", d:"Radio logs show a consistent 1.3-second delay for light-speed travel. Faking that timing for days is impossible."},
                     {t:"Hammer and Feather", d:"Apollo 15 dropped a hammer and feather in the vacuum. They hit at the same time. Only possible without air."},
-                    {t:"Chemical Uniqueness", d:"Isotopic analysis of lunar samples shows they were exposed to cosmic radiation for millions of years."},
-                    {t:"Apollo 13 Failure", d:"If we were faking successes, we wouldn't fake a near-fatal disaster like Apollo 13. Reality is messier than fiction."}
+                    {t:"Chemical Uniqueness", d:"Isotopic analysis shows samples were exposed to cosmic radiation for millions of years, unlike Earth rocks."},
+                    {t:"Apollo 13 Failure", d:"If we were faking successes, we wouldn't fake a near-fatal disaster like Apollo 13."}
                 ],
                 u: [
-                    {t:"The Secret Base", d:"We didn't stop going; we just went secret. There are bases on the far side built with recovered tech."},
-                    {t:"The Bell Effect", d:"When Apollo 12's ascent stage crashed, the moon 'rang like a bell' for an hour, suggesting a hollow structure."},
-                    {t:"Ancient Ruins", d:"Whistleblowers claim astronauts found glass towers. Fake footage was released to hide alien archaeology."},
+                    {t:"Secret Space Program", d:"We didn't stop going; we just went secret. There are bases on the far side built with recovered tech."},
+                    {t:"The Moon Rang", d:"When Apollo 12's ascent stage crashed, the moon 'rang like a bell' for an hour, suggesting a hollow structure."},
+                    {t:"Ancient Glass Ruins", d:"Whistleblowers claim astronauts found glass towers. Fake footage was released to hide alien archaeology."},
                     {t:"Anti-Gravity Tech", d:"The Saturn V was a show. Real missions used recovered Nazi or Alien gravity-drive tech."},
-                    {t:"Orange Soil Mystery", d:"Apollo 17 found bright orange volcanic glass beads, though some suspect ancient terraforming."},
+                    {t:"Orange Soil Mystery", d:"Apollo 17 found bright orange volcanic glass beads, though some suspect ancient terraforming artifacts."},
                     {t:"The Monolith", d:"Astronauts supposedly discovered a geometric structure in Tycho crater that was immediately classified."},
-                    {t:"Lunar Orbs", d:"Unreleased transcripts mention 'bogies' or glowing orbs following the Command Module during orbit."},
-                    {t:"Dark Side Transmissions", d:"Radio amateurs claim to have intercepted signals coming from the moon's far side long after 1972."},
-                    {t:"Biological Samples", d:"Some lore suggests they didn't just bring back rocks, but dormant microbial life now kept at Fort Detrick."},
-                    {t:"The 2024 Return", d:"The urgency of the Artemis mission isn't discovery; it's defending what we left there from other nations."},
-                    {t:"TESS Findings", d:"Recent space telescope data suggests the Moon's interior is significantly less dense than a natural rock should be."}
+                    {t:"Dark Side Orbs", d:"Unreleased transcripts mention 'bogies' or glowing orbs following the Command Module during orbit."},
+                    {t:"遠隔通信 (Far Signals)", d:"Radio amateurs claim to have intercepted signals coming from the far side long after 1972."},
+                    {t:"Biological Samples", d:"Some lore suggests they didn't just bring back rocks, but dormant microbial life kept in deep storage."},
+                    {t:"Artemis Urgency", d:"The 2024 return mission is actually about defending what we left there from other nations."},
+                    {t:"Lunar Density", d:"Seismic data suggests the Moon is significantly less dense than a natural rock should be."}
                 ],
                 q: [
                     "How would a 1960s set simulate vacuum dust physics?",
@@ -367,12 +358,12 @@
                     "Why did Russia stay silent about an American lie?",
                     "How do you explain the chemical uniqueness of the rocks?",
                     "Why can we see the gear through modern telescopes?",
-                    "If it was a set, why was the signal coming from the moon's coordinates?",
+                    "If it was a set, why was the signal coming from the moon?",
                     "Why would 400,000 people risk their careers for a lie?",
-                    "How do you simulate 1/6th gravity perfectly across 6 missions?",
-                    "Why does the LRO see tracks that match the 1969 maps perfectly?",
+                    "How do you simulate 1/6th gravity perfectly for hours?",
+                    "Why does the LRO see tracks that match the 1969 maps?",
                     "What happened to the 800 pounds of rocks if they aren't real?",
-                    "How do you fake the high-energy seismic 'moonquakes' we recorded?"
+                    "How do you fake seismic moonquakes recorded by instruments?"
                 ],
                 e: [
                     "It’s okay, not everyone understands orbital mechanics.",
@@ -380,99 +371,91 @@
                     "The beauty of science is that it's true whether you believe it or not.",
                     "You're confusing 'I don't understand' with 'It's impossible.'",
                     "Let's move on. I can't convince you gravity is real today.",
-                    "The evidence is there if you're actually looking for truth, not a story.",
+                    "The evidence is there if you're actually looking for truth.",
                     "If you think the USSR was 'in on it', you don't know history.",
                     "Math doesn't have an agenda.",
                     "You can buy a laser and hit the moon yourself. Try it.",
-                    "I'll trust the astronauts who actually walked there.",
-                    "Believe what you want, but the reflectors are still there."
+                    "I'll trust the astronauts who actually walked there."
                 ]
             }
         };
 
         function setMode(m) {
-            mode = m;
-            var b = document.getElementById('body');
-            var label = document.getElementById('mode-label');
-            var graphic = document.getElementById('main-graphic');
+            currentMode = m;
+            const b = document.getElementById('body');
+            const label = document.getElementById('mode-label');
+            const graphic = document.getElementById('main-graphic');
+            
             b.style.backgroundColor = m == 'h' ? 'var(--h-bg)' : 'var(--t-bg)';
             label.innerText = m == 'h' ? "THE SKEPTIC'S FILE" : "THE OFFICIAL RECORD";
             label.style.color = m == 'h' ? 'var(--h-accent)' : 'var(--t-accent)';
-            graphic.innerHTML = graphics[m];
+            
+            graphic.innerHTML = m == 'h' ? 
+                `<svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>` : 
+                `<svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#4d94ff" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>`;
+
             document.getElementById('mh').className = 'm-btn' + (m == 'h' ? ' active-h' : '');
             document.getElementById('mt').className = 'm-btn' + (m == 't' ? ' active-t' : '');
             render();
         }
 
         function setTab(t) {
-            tab = t;
-            // Clear all active states
-            document.getElementById('ns').classList.remove('active');
-            document.getElementById('nu').classList.remove('active');
-            document.getElementById('nq').classList.remove('active');
-            document.getElementById('ne').classList.remove('active');
-            
-            // Set active state for selected tab
+            currentTab = t;
+            ['ns', 'nu', 'nq', 'ne'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
             document.getElementById('n' + t).classList.add('active');
-            
             render();
         }
 
         function toggleCard(id) {
-            var card = document.getElementById('card-' + id);
-            if (card.classList.contains('open')) {
-                card.classList.remove('open');
-            } else {
-                var cards = document.getElementsByClassName('card');
-                for(var i=0; i<cards.length; i++) cards[i].classList.remove('open');
-                card.classList.add('open');
-            }
+            const card = document.getElementById('card-' + id);
+            const isOpen = card.classList.contains('open');
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('open'));
+            if (!isOpen) card.classList.add('open');
         }
 
         function render() {
-            var v = document.getElementById('view');
-            var h = '';
-            var items = content[mode][tab];
-            
-            if (!items) {
-                v.innerHTML = '<div style="padding:20px; text-align:center; color:#666">No data found for this category.</div>';
-                return;
-            }
+            const container = document.getElementById('view');
+            const items = contentData[currentMode][currentTab];
+            let html = '';
 
-            if(tab == 'q' || tab == 'e') {
-                for(var i=0; i<items.length; i++) {
-                    var accent = mode == 'h' ? 'var(--h-accent)' : 'var(--t-accent)';
-                    h += '<div class="q-item" style="border-left-color: '+accent+'">"' + items[i] + '"</div>';
-                }
+            if (currentTab === 'q' || currentTab === 'e') {
+                const color = currentMode === 'h' ? 'var(--h-accent)' : 'var(--t-accent)';
+                items.forEach(text => {
+                    html += `<div class="q-item" style="border-left-color: ${color}">"${text}"</div>`;
+                });
             } else {
-                for(var i=0; i<items.length; i++) {
-                    h += '<div class="card" id="card-' + i + '">' +
-                         '<button class="card-header" onclick="toggleCard(' + i + ')">' +
-                         '<span>' + items[i].t + '</span><div class="chevron"></div></button>' +
-                         '<div class="card-body"><p class="card-text">' + items[i].d + '</p></div>' +
-                         '</div>';
-                }
+                items.forEach((item, i) => {
+                    html += `
+                        <div class="card" id="card-${i}">
+                            <button class="card-header" onclick="toggleCard(${i})">
+                                <span>${item.t}</span>
+                                <div class="chevron"></div>
+                            </button>
+                            <div class="card-body">
+                                <p class="card-text">${item.d}</p>
+                            </div>
+                        </div>`;
+                });
             }
-            v.innerHTML = h;
-            v.scrollTop = 0;
+            container.innerHTML = html;
+            container.scrollTop = 0;
         }
 
         function copyAppLink() {
-            const url = window.location.href;
-            const tempInput = document.createElement('textarea');
-            tempInput.value = url;
-            document.body.appendChild(tempInput);
-            tempInput.select();
+            const el = document.createElement('textarea');
+            el.value = window.location.href;
+            document.body.appendChild(el);
+            el.select();
             document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            const toast = document.getElementById('toast');
-            toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+            document.body.removeChild(el);
+            const t = document.getElementById('toast');
+            t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 2000);
         }
 
-        window.onload = function() {
-            setMode('h');
-        };
+        window.onload = () => setMode('h');
     </script>
 </body>
 </html>
